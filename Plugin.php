@@ -72,7 +72,7 @@ class Plugin extends PluginBase
                     return true;
                 }
 
-                return $model->stock > $model->minimum_qty;
+                return $model->stock >= $model->minimum_qty;
             });
 
             $model->addDynamicMethod('isNotInStock', function() use ($model) {
