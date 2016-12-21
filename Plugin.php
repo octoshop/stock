@@ -3,6 +3,8 @@
 use Backend;
 use Event;
 use Backend\Classes\FormTabs;
+use Cart;
+use Octoshop\Core\CartItem;
 use Octoshop\Core\Controllers\Products;
 use Octoshop\Core\Models\Product;
 use System\Classes\PluginBase;
@@ -26,6 +28,8 @@ class Plugin extends PluginBase
     {
         $this->extendBackendForm();
         $this->extendModels();
+
+        $this->extendOctoshopCheckout();
     }
 
     protected function extendBackendForm()
@@ -81,6 +85,24 @@ class Plugin extends PluginBase
 
             $model->addDynamicMethod('isSoldOut', function() use ($model) {
                 return $model->isNotInStock();
+            });
+        });
+    }
+
+    protected function extendOctoshopCheckout()
+    {
+        Event::listen('cart.validate_items', function() {
+            Cart::registerItemValidator(function(CartItem $item) {
+                $error = null;
+                $product = $item->product();
+
+                if ($product->isSoldOut()) {
+                    $error = '"%s" is sold out.';
+                } elseif ($product->is_stockable && $product->stock < $item->qty) {
+                    $error = 'There are only '.$product->stock.' of "%s" left in stock.';
+                }
+
+                return $error ? sprintf($error, $item->name) : true;
             });
         });
     }
