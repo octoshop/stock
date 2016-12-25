@@ -105,5 +105,16 @@ class Plugin extends PluginBase
                 return $error ? sprintf($error, $item->name) : true;
             });
         });
+
+        Event::listen('octoshop.checkout.success', function($checkout) {
+            foreach (Cart::content() as $item) {
+                $product = $item->product();
+
+                if ($product->reduce_stock) {
+                    $product->stock -= $item->qty;
+                    $product->save();
+                }
+            }
+        });
     }
 }
