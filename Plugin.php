@@ -4,6 +4,7 @@ use Backend;
 use Event;
 use Backend\Classes\FormTabs;
 use Cart;
+use Lang;
 use Octoshop\Core\CartItem;
 use Octoshop\Core\Controllers\Products;
 use Octoshop\Core\Models\Product;
@@ -42,8 +43,8 @@ class Plugin extends PluginBase
 
                 $widget->addFields([
                     'is_stockable' => [
-                        'label' => 'Enforce Stock Levels',
-                        'comment' => 'Controls whether customers can purchase a product when it\'s out of stock.',
+                        'label' => 'octoshop.stock::lang.product.isStockable',
+                        'comment' => 'octoshop.stock::lang.product.isStockable_comment',
                         'type' => 'switch',
                         'span' => 'left',
                         'containerAttributes' => [
@@ -51,14 +52,14 @@ class Plugin extends PluginBase
                         ],
                     ],
                     'stock' => [
-                        'label' => 'Units in Stock',
+                        'label' => 'octoshop.stock::lang.product.stock',
                         'type' => 'number',
                         'span' => 'right',
                         'default' => 0,
                     ],
                     'reduce_stock' => [
-                        'label' => 'Reduce Stock',
-                        'comment' => 'With this option enabled, the stock level will be reduced when customers checkout.',
+                        'label' => 'octoshop.stock::lang.product.reduceStock',
+                        'comment' => 'octoshop.stock::lang.product.reduceStock_comment',
                         'type' => 'switch',
                         'span' => 'left',
                     ],
@@ -97,12 +98,12 @@ class Plugin extends PluginBase
                 $product = $item->product();
 
                 if ($product->isSoldOut()) {
-                    $error = '"%s" is sold out.';
+                    $error = sprintf(Lang::get('octoshop.stock::lang.product.stock_empty'), $item->name);
                 } elseif ($product->is_stockable && $product->stock < $item->qty) {
-                    $error = 'There are only '.$product->stock.' of "%s" left in stock.';
+                    $error = sprintf(Lang::get('octoshop.stock::lang.product.stock_low'), $product->stock, $item->name);
                 }
 
-                return $error ? sprintf($error, $item->name) : true;
+                return $error ?: true;
             });
         });
 
